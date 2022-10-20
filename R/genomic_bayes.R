@@ -150,9 +150,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    method="mixed", algorithm="default") {
   
   # Check methods
-  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR","bayesF")
   method <- match(method, methods) - 1
-  if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid") 
+  if( !sum(method%in%c(0:6))== 1 ) stop("Method specified not valid") 
 
   if(method==0) {
     # BLUP and we do not estimate parameters
@@ -162,6 +162,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   
     
   # Determine number of traits
+  # You can easily create errors here by supplying un-supported combinations, if you give a GRMlist
+  # with stat and no y, it will go in bmm() and will crash because length of y cannot be evaluated....
   nt <- 1
   if(!is.null(y)) {
     if(is.list(y)) nt <- length(y)
@@ -200,7 +202,12 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   
   if( nt>1 && !is.null(stat) && !is.null(Glist) && algorithm=="serial") 
     analysis <- "st-blr-sumstat-sparse-ld"
-  
+
+  if(method==6) {
+    if(is.null(stat) || !is.null(y) || !is.null(W)) stop("bayesF can only run on summary statistics")
+    if(is.null(X)) stop("bayesF needs a matrix of covariates for the SNP-variance model (use X=)")
+  }
+
   message(paste("Type of analysis performed:",analysis))  
   
   
